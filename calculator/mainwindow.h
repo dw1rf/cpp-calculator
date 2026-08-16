@@ -1,18 +1,17 @@
 #pragma once
-#include "enums.h"
 #include <QMainWindow>
-#include <functional>
-#include <optional>
-#include <string>
+#include <random>
+#include "model.h"
 QT_BEGIN_NAMESPACE
-namespace Ui{class MainWindow;}
+namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-class MainWindow:public QMainWindow{Q_OBJECT
+class MainWindow : public QMainWindow {
+ Q_OBJECT
 public:
- explicit MainWindow(QWidget* p=nullptr);~MainWindow();
- void SetDigitKeyCallback(std::function<void(int)> f){digit_=std::move(f);}
- void SetProcessOperationKeyCallback(std::function<void(Operation)> f){operation_=std::move(f);}
- void SetProcessControlKeyCallback(std::function<void(ControlKey)> f){control_=std::move(f);}
- void SetControllerCallback(std::function<void(ControllerType)> f){controller_=std::move(f);}
- void SetInputText(const std::string&);void SetErrorText(const std::string&);void SetFormulaText(const std::string&);void SetMemText(const std::string&);void SetExtraKey(std::optional<std::string>);
-private:Ui::MainWindow* ui;std::function<void(int)> digit_;std::function<void(Operation)> operation_;std::function<void(ControlKey)> control_;std::function<void(ControllerType)> controller_;QPalette normal_palette_;};
+ MainWindow(QWidget *parent=nullptr); ~MainWindow(); void SetRandomGen(const std::mt19937& random_gen);
+private slots:
+ void on_btn_clear_clicked(); void on_btn_push_front_clicked(); void on_btn_push_back_clicked(); void on_btn_pop_back_clicked(); void on_btn_pop_front_clicked(); void on_btn_insert_clicked(); void on_btn_erase_clicked(); void on_btn_begin_clicked(); void on_btn_end_clicked(); void on_btn_dec_iterator_clicked(); void on_btn_inc_iterator_clicked(); void on_list_widget_currentRowChanged(int);
+ void on_btn_tea_clicked(); void on_btn_cakes_clicked(); void on_btn_edit_clicked(); void on_btn_resize_clicked(); void on_btn_find_clicked(); void on_btn_count_clicked(); void on_btn_min_element_clicked(); void on_btn_max_element_clicked(); void on_btn_merge_sort_clicked(); void on_btn_merge_sort_comp_clicked(); void on_btn_shuffle_clicked(); void on_btn_unique_clicked(); void on_btn_reverse_clicked(); void on_btn_lower_bound_clicked(); void on_btn_upper_bound_clicked();
+private:
+ void ApplyModel(); void ApplyIterator(); Model model_; std::mt19937 random_gen_; Ui::MainWindow* ui;
+};
