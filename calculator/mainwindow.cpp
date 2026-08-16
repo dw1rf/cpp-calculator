@@ -1,15 +1,44 @@
-#include "algo.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <algorithm>
-#include <iterator>
-namespace { const Model::Deque teas{"Чай Лунцзин","Эрл Грей","Сенча","Пуэр","Дарджилинг","Ассам","Матча","Ганпаудер","Оолонг","Лапсанг Сушонг"}; const Model::Deque cakes{"Красный бархат","Наполеон","Медовик","Тирамису","Прага","Чизкейк","Захер","Эстерхази","Морковный торт","Чёрный лес"}; }
-MainWindow::MainWindow(QWidget*p):QMainWindow(p),ui(new Ui::MainWindow){ui->setupUi(this);ApplyModel();} MainWindow::~MainWindow(){delete ui;} void MainWindow::SetRandomGen(const std::mt19937&g){random_gen_=g;}
-void MainWindow::ApplyModel(){ui->list_widget->blockSignals(true);ui->list_widget->clear();for(size_t i=0;i<model_.items.size();++i)ui->list_widget->addItem(QString::number(i)+": "+QString::fromStdString(model_.items[i]));ui->list_widget->addItem("end");ui->txt_size->setText(QString::number(model_.items.size()));bool e=model_.items.empty();ui->btn_pop_back->setEnabled(!e);ui->btn_pop_front->setEnabled(!e);ui->list_widget->blockSignals(false);ApplyIterator();}
-void MainWindow::ApplyIterator(){bool e=model_.iterator==model_.items.end();int p=e?model_.items.size():std::distance(model_.items.begin(),model_.iterator);ui->list_widget->setCurrentRow(p);ui->txt_elem_pos->setText(QString::number(p));if(e)ui->txt_elem_content->clear();else ui->txt_elem_content->setText(QString::fromStdString(*model_.iterator));ui->btn_dec_iterator->setEnabled(model_.iterator!=model_.items.begin());ui->btn_inc_iterator->setEnabled(!e);ui->btn_erase->setEnabled(!e);ui->btn_edit->setEnabled(!e);}
-void MainWindow::on_btn_clear_clicked(){model_.items.clear();model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_push_front_clicked(){model_.items.push_front(ui->txt_elem_content->text().toStdString());model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_push_back_clicked(){model_.items.push_back(ui->txt_elem_content->text().toStdString());model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_pop_back_clicked(){if(!model_.items.empty())model_.items.pop_back();model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_pop_front_clicked(){if(!model_.items.empty())model_.items.pop_front();model_.iterator=model_.items.begin();ApplyModel();}
-void MainWindow::on_btn_insert_clicked(){model_.items.insert(model_.iterator,ui->txt_elem_content->text().toStdString());model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_erase_clicked(){if(model_.iterator!=model_.items.end())model_.items.erase(model_.iterator);model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_begin_clicked(){model_.iterator=model_.items.begin();ApplyIterator();} void MainWindow::on_btn_end_clicked(){model_.iterator=model_.items.end();ApplyIterator();} void MainWindow::on_btn_dec_iterator_clicked(){if(model_.iterator!=model_.items.begin())--model_.iterator;ApplyIterator();} void MainWindow::on_btn_inc_iterator_clicked(){if(model_.iterator!=model_.items.end())++model_.iterator;ApplyIterator();}
-void MainWindow::on_list_widget_currentRowChanged(int r){if(r<0)return;model_.iterator=model_.items.begin();std::advance(model_.iterator,std::min(r,(int)model_.items.size()));ApplyIterator();} void MainWindow::on_btn_tea_clicked(){model_.items=teas;model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_cakes_clicked(){model_.items=cakes;model_.iterator=model_.items.begin();ApplyModel();}
-void MainWindow::on_btn_edit_clicked(){if(model_.iterator!=model_.items.end())*model_.iterator=ui->txt_elem_content->text().toStdString();ApplyModel();} void MainWindow::on_btn_resize_clicked(){bool ok=false;int n=0;const QStringList candidates{ui->le_endian->text(),ui->le_count->text(),ui->txt_elem_pos->text(),ui->txt_elem_content->text(),ui->txt_size->text()};for(const QString& value:candidates){int candidate=value.toInt(&ok);if(ok&&candidate>0&&candidate!=static_cast<int>(model_.items.size())){n=candidate;break;}}model_.items.resize(n);model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_find_clicked(){model_.iterator=std::find(model_.items.begin(),model_.items.end(),ui->txt_elem_content->text().toStdString());ApplyIterator();} void MainWindow::on_btn_count_clicked(){ui->lbl_count->setText(QString::number(std::count(model_.items.begin(),model_.items.end(),ui->le_count->text().toStdString())));}
-void MainWindow::on_btn_min_element_clicked(){model_.iterator=std::min_element(model_.items.begin(),model_.items.end());ApplyIterator();} void MainWindow::on_btn_max_element_clicked(){model_.iterator=std::max_element(model_.items.begin(),model_.items.end());ApplyIterator();} void MainWindow::on_btn_merge_sort_clicked(){model_.items=MergeSort(model_.items,std::less<std::string>{});model_.iterator=model_.items.begin();ApplyModel();} void MainWindow::on_btn_merge_sort_comp_clicked(){model_.items=MergeSort(model_.items,[](const std::string&a,const std::string&b){return QString::compare(QString::fromStdString(a),QString::fromStdString(b),Qt::CaseInsensitive)<0;});model_.iterator=model_.items.begin();ApplyModel();}
-void MainWindow::on_btn_shuffle_clicked(){auto p=std::distance(model_.items.begin(),model_.iterator);std::shuffle(model_.items.begin(),model_.items.end(),random_gen_);model_.iterator=model_.items.begin()+std::min(p,(long)model_.items.size());ApplyModel();} void MainWindow::on_btn_unique_clicked(){if(std::is_sorted(model_.items.begin(),model_.items.end())){auto last=std::unique(model_.items.begin(),model_.items.end());model_.items.erase(last,model_.items.end());model_.iterator=model_.items.begin();}ApplyModel();} void MainWindow::on_btn_reverse_clicked(){auto p=std::distance(model_.items.begin(),model_.iterator);std::reverse(model_.items.begin(),model_.items.end());model_.iterator=model_.items.begin()+std::min(p,(long)model_.items.size());ApplyModel();} void MainWindow::on_btn_lower_bound_clicked(){if(!std::is_sorted(model_.items.begin(),model_.items.end()))return;model_.iterator=std::lower_bound(model_.items.begin(),model_.items.end(),ui->txt_elem_content->text().toStdString());ApplyIterator();} void MainWindow::on_btn_upper_bound_clicked(){if(!std::is_sorted(model_.items.begin(),model_.items.end()))return;model_.iterator=std::upper_bound(model_.items.begin(),model_.items.end(),ui->txt_elem_content->text().toStdString());ApplyIterator();}
+#include <QPushButton>
+#include <cmath>
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+    ui->setupUi(this);
+    SetText("0"); ui->l_memory->clear(); ui->l_formula->clear();
+    for (auto* button : findChildren<QPushButton*>()) {
+        connect(button, &QPushButton::clicked, this, [this, button]{ HandleButton(button->text()); });
+    }
+}
+MainWindow::~MainWindow() { delete ui; }
+void MainWindow::SetText(const QString& text) { input_number_=text; ui->l_result->setText(text); }
+void MainWindow::AddText(const QString& suffix) {
+    if (start_new_input_) { SetText(suffix); start_new_input_=false; }
+    else SetText(input_number_ + suffix);
+}
+QString MainWindow::FormatNumber(double value) const {
+    if (std::isfinite(value) && std::abs(value) < 9e15 && std::abs(value-std::round(value)) < 1e-10)
+        return QString::number(std::round(value),'f',0);
+    return QString::number(value,'g',15);
+}
+void MainWindow::SelectOperation(const QString& text) {
+    left_text_=input_number_; calculator_.SetLeft(input_number_.toDouble()); operation_=text; start_new_input_=true;
+}
+void MainWindow::Calculate() {
+    if (operation_.isEmpty()) return;
+    const QString right_text = start_new_input_ ? left_text_ : input_number_;
+    const double result=calculator_.Calculate(operation_, right_text.toDouble());
+    ui->l_formula->setText(left_text_+" "+(operation_=="xʸ" ? "^" : operation_)+" "+right_text+" =");
+    SetText(FormatNumber(result)); left_text_=input_number_; operation_.clear(); start_new_input_=true;
+}
+void MainWindow::HandleButton(const QString& text) {
+    if (text.size()==1 && text[0].isDigit()) { AddText(text); return; }
+    if (text==".") { if (start_new_input_) { SetText("0."); start_new_input_=false; } else if(!input_number_.contains('.')) AddText("."); return; }
+    if (text=="±") { if(input_number_.startsWith("-")) SetText(input_number_.mid(1)); else SetText("-"+input_number_); return; }
+    if (text=="⌫") { if(!start_new_input_) { QString s=input_number_; s.chop(1); SetText(s.isEmpty()||s=="-" ? "0" : s); } return; }
+    if (text=="C") { SetText("0"); left_text_.clear(); operation_.clear(); ui->l_formula->clear(); start_new_input_=true; return; }
+    if (text=="MC") { has_memory_=false; ui->l_memory->clear(); return; }
+    if (text=="MS") { memory_=input_number_.toDouble(); has_memory_=true; ui->l_memory->setText("M"); start_new_input_=true; return; }
+    if (text=="MR") { if(has_memory_) { SetText(FormatNumber(memory_)); start_new_input_=false; } return; }
+    if (text=="=") { Calculate(); return; }
+    if (text=="+"||text=="−"||text=="×"||text=="÷"||text=="xʸ") { SelectOperation(text); return; }
+}
